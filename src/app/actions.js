@@ -50,7 +50,7 @@ export async function registerAction(prevState, formData) {
     registrationSuccess = true;
   } catch (error) {
     console.error('Registration error:', error);
-    return { error: 'Terjadi kesalahan saat pendaftaran. Silakan coba lagi.' };
+    return { error: `Terjadi kesalahan saat pendaftaran: ${error.message}` };
   }
 
   if (registrationSuccess) {
@@ -104,7 +104,7 @@ export async function loginAction(prevState, formData) {
     loginSuccess = true;
   } catch (error) {
     console.error('Login error:', error);
-    return { error: 'Terjadi kesalahan saat login. Silakan coba lagi.' };
+    return { error: `Terjadi kesalahan saat login: ${error.message}` };
   }
 
   if (loginSuccess) {
