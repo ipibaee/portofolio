@@ -1,6 +1,6 @@
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { query } from '@/lib/db';
+import { query, ensureTables } from '@/lib/db';
 import AdminDashboard from './AdminDashboard';
 
 export const dynamic = 'force-dynamic';
@@ -11,24 +11,15 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  // Fetch all portfolio and system data
-  const [
-    profiles,
-    projects,
-    menuLinks,
-    skills,
-    experiences,
-    services,
-    messages
-  ] = await Promise.all([
-    query('SELECT * FROM profile LIMIT 1'),
-    query('SELECT * FROM projects ORDER BY order_index ASC, id DESC'),
-    query('SELECT * FROM menu_links ORDER BY order_index ASC, id ASC'),
-    query('SELECT * FROM skills ORDER BY order_index ASC, id ASC'),
-    query('SELECT * FROM experiences ORDER BY order_index ASC, id ASC'),
-    query('SELECT * FROM services ORDER BY order_index ASC, id ASC'),
-    query('SELECT * FROM messages ORDER BY id DESC')
-  ]);
+  // better-sqlite3 is synchronous
+  ensureTables();
+  const profiles    = query('SELECT * FROM profile LIMIT 1');
+  const projects    = query('SELECT * FROM projects ORDER BY order_index ASC, id DESC');
+  const menuLinks   = query('SELECT * FROM menu_links ORDER BY order_index ASC, id ASC');
+  const skills      = query('SELECT * FROM skills ORDER BY order_index ASC, id ASC');
+  const experiences = query('SELECT * FROM experiences ORDER BY order_index ASC, id ASC');
+  const services    = query('SELECT * FROM services ORDER BY order_index ASC, id ASC');
+  const messages    = query('SELECT * FROM messages ORDER BY id DESC');
 
   const profile = (profiles && profiles[0]) || {};
 

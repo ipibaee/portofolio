@@ -17,7 +17,8 @@ export async function loginAction(prevState, formData) {
   }
 
   try {
-    const users = await query(
+    // better-sqlite3 is synchronous - no await needed for query
+    const users = query(
       'SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1',
       [usernameOrEmail, usernameOrEmail]
     );
@@ -44,7 +45,7 @@ export async function loginAction(prevState, formData) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -77,7 +78,7 @@ export async function changeAdminPasswordAction(prevState, formData) {
   }
 
   try {
-    const users = await query('SELECT * FROM users WHERE id = ? LIMIT 1', [user.userId]);
+    const users = query('SELECT * FROM users WHERE id = ? LIMIT 1', [user.userId]);
     if (!users || users.length === 0) {
       return { error: 'User admin tidak ditemukan.' };
     }
@@ -102,8 +103,7 @@ export async function changeAdminPasswordAction(prevState, formData) {
     const finalUsername = newUsername || adminUser.username;
     const finalEmail = newEmail || adminUser.email;
 
-    // Check if another user has the new username/email
-    const existing = await query(
+    const existing = query(
       'SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ? LIMIT 1',
       [finalUsername, finalEmail, adminUser.id]
     );
@@ -111,12 +111,11 @@ export async function changeAdminPasswordAction(prevState, formData) {
       return { error: 'Username atau Email sudah dipakai user lain.' };
     }
 
-    await query(
+    query(
       'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?',
       [finalUsername, finalEmail, finalPasswordHash, adminUser.id]
     );
 
-    // Refresh cookie token with new info
     const token = await signToken({
       userId: adminUser.id,
       username: finalUsername,
@@ -168,10 +167,9 @@ export async function updateProfileAction(prevState, formData) {
     const linkedin_url = formData.get('linkedin_url')?.toString() || '';
     const whatsapp_url = formData.get('whatsapp_url')?.toString() || '';
 
-    // Check if profile exists
-    const existing = await query('SELECT id FROM profile LIMIT 1');
+    const existing = query('SELECT id FROM profile LIMIT 1');
     if (existing && existing.length > 0) {
-      await query(
+      query(
         `UPDATE profile SET
           name = ?, title = ?, tagline = ?, headline = ?, about_text = ?,
           birthday = ?, website = ?, phone = ?, city = ?, age = ?, degree = ?, email = ?,
@@ -188,7 +186,7 @@ export async function updateProfileAction(prevState, formData) {
         ]
       );
     } else {
-      await query(
+      query(
         `INSERT INTO profile (
           name, title, tagline, headline, about_text,
           birthday, website, phone, city, age, degree, email,
@@ -237,7 +235,7 @@ export async function saveProjectAction(prevState, formData) {
     }
 
     if (id) {
-      await query(
+      query(
         `UPDATE projects SET
           title = ?, category = ?, description = ?, details = ?,
           image_url = ?, demo_url = ?, github_url = ?, tags = ?,
@@ -246,7 +244,7 @@ export async function saveProjectAction(prevState, formData) {
         [title, category, description, details, image_url, demo_url, github_url, tags, featured, order_index, id]
       );
     } else {
-      await query(
+      query(
         `INSERT INTO projects (title, category, description, details, image_url, demo_url, github_url, tags, featured, order_index)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [title, category, description, details, image_url, demo_url, github_url, tags, featured, order_index]
@@ -267,17 +265,16 @@ export async function deleteProjectAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM projects WHERE id = ?', [id]);
+    query('DELETE FROM projects WHERE id = ?', [id]);
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
-    console.error('Delete project error:', error);
     return { error: error.message };
   }
 }
 
-// ======================== MENU LINKS ACTIONS (QUICK PROJECT BUTTONS) ========================
+// ======================== MENU LINKS ACTIONS ========================
 
 export async function saveMenuLinkAction(prevState, formData) {
   const user = await getSessionUser();
@@ -298,7 +295,7 @@ export async function saveMenuLinkAction(prevState, formData) {
     }
 
     if (id) {
-      await query(
+      query(
         `UPDATE menu_links SET
           label = ?, url = ?, badge = ?, icon = ?,
           is_external = ?, is_active = ?, order_index = ?
@@ -306,7 +303,7 @@ export async function saveMenuLinkAction(prevState, formData) {
         [label, url, badge, icon, is_external, is_active, order_index, id]
       );
     } else {
-      await query(
+      query(
         `INSERT INTO menu_links (label, url, badge, icon, is_external, is_active, order_index)
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [label, url, badge, icon, is_external, is_active, order_index]
@@ -317,7 +314,6 @@ export async function saveMenuLinkAction(prevState, formData) {
     revalidatePath('/admin');
     return { success: id ? 'Tombol menu projek berhasil diupdate!' : 'Tombol menu projek berhasil dibuat!' };
   } catch (error) {
-    console.error('Save menu link error:', error);
     return { error: `Gagal menyimpan tombol menu: ${error.message}` };
   }
 }
@@ -327,12 +323,11 @@ export async function deleteMenuLinkAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM menu_links WHERE id = ?', [id]);
+    query('DELETE FROM menu_links WHERE id = ?', [id]);
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
-    console.error('Delete menu link error:', error);
     return { error: error.message };
   }
 }
@@ -350,17 +345,15 @@ export async function saveSkillAction(prevState, formData) {
     const percentage = parseInt(formData.get('percentage')?.toString() || '80', 10);
     const order_index = parseInt(formData.get('order_index')?.toString() || '0', 10);
 
-    if (!name) {
-      return { error: 'Nama skill harus diisi.' };
-    }
+    if (!name) return { error: 'Nama skill harus diisi.' };
 
     if (id) {
-      await query(
+      query(
         'UPDATE skills SET name = ?, category = ?, percentage = ?, order_index = ? WHERE id = ?',
         [name, category, percentage, order_index, id]
       );
     } else {
-      await query(
+      query(
         'INSERT INTO skills (name, category, percentage, order_index) VALUES (?, ?, ?, ?)',
         [name, category, percentage, order_index]
       );
@@ -370,7 +363,6 @@ export async function saveSkillAction(prevState, formData) {
     revalidatePath('/admin');
     return { success: id ? 'Skill berhasil diupdate!' : 'Skill baru berhasil ditambahkan!' };
   } catch (error) {
-    console.error('Save skill error:', error);
     return { error: `Gagal menyimpan skill: ${error.message}` };
   }
 }
@@ -380,12 +372,11 @@ export async function deleteSkillAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM skills WHERE id = ?', [id]);
+    query('DELETE FROM skills WHERE id = ?', [id]);
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
-    console.error('Delete skill error:', error);
     return { error: error.message };
   }
 }
@@ -408,12 +399,12 @@ export async function saveExperienceAction(prevState, formData) {
     if (!title) return { error: 'Judul pengalaman/pendidikan harus diisi.' };
 
     if (id) {
-      await query(
+      query(
         'UPDATE experiences SET type = ?, title = ?, period = ?, institution = ?, description = ?, order_index = ? WHERE id = ?',
         [type, title, period, institution, description, order_index, id]
       );
     } else {
-      await query(
+      query(
         'INSERT INTO experiences (type, title, period, institution, description, order_index) VALUES (?, ?, ?, ?, ?, ?)',
         [type, title, period, institution, description, order_index]
       );
@@ -432,7 +423,7 @@ export async function deleteExperienceAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM experiences WHERE id = ?', [id]);
+    query('DELETE FROM experiences WHERE id = ?', [id]);
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
@@ -457,12 +448,12 @@ export async function saveServiceAction(prevState, formData) {
     if (!title) return { error: 'Nama layanan harus diisi.' };
 
     if (id) {
-      await query(
+      query(
         'UPDATE services SET title = ?, description = ?, icon = ?, order_index = ? WHERE id = ?',
         [title, description, icon, order_index, id]
       );
     } else {
-      await query(
+      query(
         'INSERT INTO services (title, description, icon, order_index) VALUES (?, ?, ?, ?)',
         [title, description, icon, order_index]
       );
@@ -481,7 +472,7 @@ export async function deleteServiceAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM services WHERE id = ?', [id]);
+    query('DELETE FROM services WHERE id = ?', [id]);
     revalidatePath('/');
     revalidatePath('/admin');
     return { success: true };
@@ -490,7 +481,7 @@ export async function deleteServiceAction(id) {
   }
 }
 
-// ======================== CONTACT MESSAGE ACTIONS (VISITORS) ========================
+// ======================== CONTACT MESSAGE ACTIONS ========================
 
 export async function submitContactMessageAction(prevState, formData) {
   const name = formData.get('name')?.toString().trim();
@@ -503,13 +494,12 @@ export async function submitContactMessageAction(prevState, formData) {
   }
 
   try {
-    await query(
+    query(
       'INSERT INTO messages (name, email, subject, message) VALUES (?, ?, ?, ?)',
       [name, email, subject, message]
     );
     return { success: 'Terima kasih! Pesan Anda telah terkirim dan akan segera saya balas.' };
   } catch (error) {
-    console.error('Submit contact message error:', error);
     return { error: `Gagal mengirim pesan: ${error.message}` };
   }
 }
@@ -519,7 +509,7 @@ export async function markMessageReadAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('UPDATE messages SET is_read = 1 WHERE id = ?', [id]);
+    query('UPDATE messages SET is_read = 1 WHERE id = ?', [id]);
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
@@ -532,7 +522,7 @@ export async function deleteMessageAction(id) {
   if (!user) return { error: 'Unauthorized' };
 
   try {
-    await query('DELETE FROM messages WHERE id = ?', [id]);
+    query('DELETE FROM messages WHERE id = ?', [id]);
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
