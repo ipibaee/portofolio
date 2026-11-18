@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Portofolio Interaktif & Modern - Mu'amar Zulkifli (IPIPortofolio)
 
-## Getting Started
+Website portofolio generasi baru dengan desain futuristik, interaktif, responsif mobile, dan dilengkapi **Panel Admin Lengkap (CRUD)** untuk mengelola isi profil, keahlian, layanan, serta projek-projek seperti aplikasi servis motor **Motocare**, toko e-commerce, dan lainnya.
 
-First, run the development server:
+---
+
+## ✨ Fitur Unggulan
+
+- **Animasi & Interaktivitas Mouse Modern:**
+  - *Custom Trailing Cursor Follower:* Efek kursor bercahaya yang mengikuti gerakan mouse secara halus dengan akselerasi cerdas.
+  - *Interactive Starfield Canvas:* Partikel latar belakang yang dinamis merespons posisi mouse (garis konstelasi bercahaya dan efek tolak/tarik halus).
+  - *3D Tilt Cards:* Kartu projek dan kartu profil yang memiliki efek kemiringan 3D dan kilauan cahaya (*glare sheen*) saat dijelajahi kursor.
+  - *Dynamic Typing Effect:* Teks berganti otomatis (*Designer, Developer, Freelancer, Photographer*).
+- **Akses Langsung Projek (Motocare, dll):**
+  - Tombol pintas projek unggulan di navbar dan banner beranda.
+  - Filter kategori projek (Web App, Website, Design).
+  - Modal detail projek interaktif beserta tautan Live Demo dan GitHub Repository.
+- **Panel Admin Terintegrasi (`/admin`):**
+  - Otentikasi aman berbasis JWT & BCrypt.
+  - **Default Akun:** Username `admin` | Password `admin123` (dapat diubah di menu Pengaturan).
+  - **CRUD Projek:** Tambah, edit, dan hapus data projek, link demo Motocare, gambar, tag, dan status unggulan.
+  - **CRUD Tombol Menu Pintas:** Tambah/edit tombol langsung ke projek yang muncul di bar navigasi.
+  - **CRUD Skills, Edukasi, dan Layanan:** Semua isi web dapat dikustomisasi tanpa perlu mengubah kode.
+  - **Kotak Masuk Pesan:** Membaca pesan yang dikirimkan oleh pengunjung melalui formulir kontak.
+  - **Unggah Gambar Langsung:** Fitur upload screenshot projek dan foto profil via API.
+- **Desain Responsif Mobile-First:**
+  - Tampilan mulus dan nyaman diakses dari smartphone, tablet, maupun monitor desktop resolusi tinggi.
+  - Mobile drawer navigation dengan efek frosted glass.
+- **Kesiapan Deploy aaPanel & GitHub:**
+  - Database bawaan SQLite (`local.db`) bebas konfigurasi tambahan, auto-seed saat pertama kali dijalankan.
+  - Mendukung PostgreSQL/Neon Database via variabel `DATABASE_URL` jika diinginkan.
+  - Panduan lengkap auto-deploy via GitHub Webhook di [DEPLOY_AAPANEL.md](DEPLOY_AAPANEL.md).
+
+---
+
+## 🛠️ Menjalankan di Lokal (Development)
 
 ```bash
+# 1. Install dependensi
+npm install
+
+# 2. Jalankan server dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) di browser Anda.  
+Panel Admin tersedia di [http://localhost:3000/admin](http://localhost:3000/admin).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Build & Production
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm run start
+```
