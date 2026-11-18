@@ -1,5 +1,6 @@
 import { createClient } from '@libsql/client';
 import { neon } from '@neondatabase/serverless';
+import path from 'path';
 
 let dbClient = null;
 let dbType = 'sqlite'; // 'sqlite' or 'postgres'
@@ -15,7 +16,8 @@ function getClient() {
   } else {
     dbType = 'sqlite';
     if (!dbClient) {
-      dbClient = createClient({ url: 'file:local.db' });
+      const dbPath = path.resolve(process.cwd(), 'local.db');
+      dbClient = createClient({ url: `file:${dbPath}` });
     }
   }
   return dbClient;
